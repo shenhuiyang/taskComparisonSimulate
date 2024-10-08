@@ -1,5 +1,6 @@
 package com.example.taskcomparison.service;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
@@ -8,6 +9,21 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 @Service
 public class TaskService {
+
+    @Value("${api.download-url}")
+    private String downloadUrl;
+
+    @Value("${api.success-url}")
+    private String successUrl;
+
+    @Value("${api.error-url}")
+    private String errorUrl;
+
+    @Value("${api.progress-url}")
+    private String progressUrl;
+
+    @Value("${api.new-taskid-url}")
+    private String newTaskIdUrl;
 
     private final AtomicInteger progress = new AtomicInteger(0);
 
@@ -52,5 +68,25 @@ public class TaskService {
                 Thread.currentThread().interrupt();
             }
         }).start();
+    }
+
+    public String getDownloadUrl() {
+        return downloadUrl;
+    }
+
+    public String getSuccessUrl() {
+        return successUrl;
+    }
+
+    public String getErrorUrl() {
+        return errorUrl;
+    }
+
+    public String getProgressUrl() {
+        return progressUrl;
+    }
+
+    public String getNewTaskIdUrl() {
+        return newTaskIdUrl;
     }
 }

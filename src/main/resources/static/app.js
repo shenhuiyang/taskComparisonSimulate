@@ -10,9 +10,9 @@ async function submitTask() {
 
 async function downloadFiles(taskID) {
     const urls = [
-        `/api/v1/get-taskid/${taskID}`,
-        `/api/v1/get-success/${taskID}`,
-        `/api/v1/get-error/${taskID}`
+        `${await getApiUrl('download-url')}/${taskID}`,
+        `${await getApiUrl('success-url')}/${taskID}`,
+        `${await getApiUrl('error-url')}/${taskID}`
     ];
 
     const filenames = [
@@ -63,7 +63,8 @@ async function compareTasks() {
 }
 
 async function getNewTaskID(taskID) {
-    const response = await fetch('/api/v1/get-new-taskid', {
+    const newTaskIdUrl = await getApiUrl('new-taskid-url');
+    const response = await fetch(newTaskIdUrl, {
         method: 'POST',
         body: JSON.stringify({ taskID }),
         headers: {
@@ -85,7 +86,7 @@ async function trackProgress() {
     let progress = 0;
 
     while (progress < 100) {
-        const response = await fetch('/api/v1/taskPercent');
+        const response = await fetch(await getApiUrl('progress-url'));
         const data = await response.json();
         progress = data.percent;
         progressBar.value = progress;
@@ -105,4 +106,10 @@ function displayComparisonResult(title, result) {
     const isMatch = result === 'Match';
     resultItem.innerHTML = `<h3>${title}</h3><pre class="${isMatch ? 'match' : 'mismatch'}">${result}</pre>`;
     resultDiv.appendChild(resultItem);
+}
+
+async function getApiUrl(key) {
+    const response = await fetch(`/api/v1/config/${key}`);
+    const data = await response.json();
+    return data.url;
 }

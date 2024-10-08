@@ -4,6 +4,7 @@ import com.example.taskcomparison.service.TaskService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.Map;
 
 @RestController
@@ -41,5 +42,30 @@ public class TaskController {
     @PostMapping("/resetProgress")
     public void resetProgress() {
         taskService.resetProgress();
+    }
+
+    @GetMapping("/config/{key}")
+    public Map<String, String> getConfig(@PathVariable String key) {
+        Map<String, String> response = new HashMap<>();
+        switch (key) {
+            case "download-url":
+                response.put("url", taskService.getDownloadUrl());
+                break;
+            case "success-url":
+                response.put("url", taskService.getSuccessUrl());
+                break;
+            case "error-url":
+                response.put("url", taskService.getErrorUrl());
+                break;
+            case "progress-url":
+                response.put("url", taskService.getProgressUrl());
+                break;
+            case "new-taskid-url":
+                response.put("url", taskService.getNewTaskIdUrl());
+                break;
+            default:
+                response.put("url", "");
+        }
+        return response;
     }
 }
