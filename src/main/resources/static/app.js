@@ -9,10 +9,13 @@ async function submitTask() {
 }
 
 async function downloadFiles(taskID) {
+    const downloadUrl = await getApiUrl('download-url');
+    const successUrl = await getApiUrl('success-url');
+    const errorUrl = await getApiUrl('error-url');
     const urls = [
-        `${await getApiUrl('download-url')}/${taskID}`,
-        `${await getApiUrl('success-url')}/${taskID}`,
-        `${await getApiUrl('error-url')}/${taskID}`
+        `${downloadUrl}/${taskID}`, // Construct the full URL with task-id for download
+        `${successUrl}/${taskID}`,  // Construct the full URL with task-id for success
+        `${errorUrl}?jobid=${taskID}` // Construct the full URL with jobId as a query parameter
     ];
 
     const filenames = [
@@ -51,7 +54,7 @@ async function compareTasks() {
 
     document.getElementById('progressBar').style.display = 'block';
     await resetProgress();
-    await trackProgress();
+    await trackProgress(taskID);
 
     await downloadFiles(newTaskID);
 
@@ -62,31 +65,49 @@ async function compareTasks() {
     displayComparisonResult('Error Comparison', errorComparison);
 }
 
-async function getNewTaskID(taskID) {
+async function getNewTaskID() {
     const newTaskIdUrl = await getApiUrl('new-taskid-url');
-    const response = await fetch(newTaskIdUrl, {
-        method: 'POST',
-        body: JSON.stringify({ taskID }),
-        headers: {
-            'Content-Type': 'application/json'
+    
+    // 打印获取到的newTaskIdUrl值
+    console.log('newTaskIdUrl:', newTaskIdUrl);
+
+    const formData = new FormData();
+    formData.append('file', new Blob(['dummy content'], { type: 'text/plain' }), 'dummy.txt'); // 确保替换为实际文件
+    formData.append('isCompressed', 'false');
+    formData.append('assetType', 'insurance');
+
+    try {
+        const response = await fetch(newTaskIdUrl, {
+            method: 'POST',
+            body: formData
+        });
+
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
         }
-    });
-    const data = await response.json();
-    return data.newTaskID;
+
+        const data = await response.json();
+        return data.newTaskID;
+    } catch (error) {
+        console.error('Failed to get new task ID:', error);
+        alert('Failed to get new task ID');
+        return null;
+    }
 }
 
 async function resetProgress() {
-    await fetch('/api/v1/resetProgress', {
+    await fetch('/formula/pricing/resetProgress', {
         method: 'POST'
     });
 }
 
-async function trackProgress() {
+async function trackProgress(taskID) {
+    const progressUrl = await getApiUrl('progress-url');
     const progressBar = document.getElementById('progressBar');
     let progress = 0;
 
     while (progress < 100) {
-        const response = await fetch(await getApiUrl('progress-url'));
+        const response = await fetch(`${progressUrl}?jobid=${taskID}&isLogging=false`);
         const data = await response.json();
         progress = data.percent;
         progressBar.value = progress;
@@ -109,7 +130,10 @@ function displayComparisonResult(title, result) {
 }
 
 async function getApiUrl(key) {
-    const response = await fetch(`/api/v1/config/${key}`);
+    console.log('key:', key);
+    const response = await fetch(`/formula/pricing/config/${key}`);
+    console.log('response',response)
     const data = await response.json();
+    console.log('data:', data.url);
     return data.url;
 }

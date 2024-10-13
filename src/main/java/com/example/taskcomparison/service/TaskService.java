@@ -2,6 +2,7 @@ package com.example.taskcomparison.service;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -24,6 +25,9 @@ public class TaskService {
 
     @Value("${api.new-taskid-url}")
     private String newTaskIdUrl;
+
+    @Value("${file.download-path}")
+    private String downloadPath;
 
     private final AtomicInteger progress = new AtomicInteger(0);
 
@@ -58,16 +62,16 @@ public class TaskService {
 
     public void resetProgress() {
         progress.set(0);
-        new Thread(() -> {
-            try {
-                while (progress.get() < 100) {
-                    Thread.sleep(1000);
-                    progress.addAndGet(20);
-                }
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-            }
-        }).start();
+         new Thread(() -> {
+             try {
+                 while (progress.get() < 100) {
+                     Thread.sleep(1000);
+                     progress.addAndGet(20);
+                 }
+             } catch (InterruptedException e) {
+                 Thread.currentThread().interrupt();
+             }
+         }).start();
     }
 
     public String getDownloadUrl() {
@@ -88,5 +92,14 @@ public class TaskService {
 
     public String getNewTaskIdUrl() {
         return newTaskIdUrl;
+    }
+
+    public String getDownloadPath() {
+        return downloadPath;
+    }
+
+    public String processNewTask(MultipartFile file, boolean isCompressed, String assetType) {
+        // 确保逻辑正确并返回有效的任务ID
+        return "new-task-id-12345"; // 示例返回值
     }
 }
